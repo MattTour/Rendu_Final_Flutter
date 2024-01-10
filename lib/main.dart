@@ -30,13 +30,15 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
   final List<Todo> _todos = <Todo>[];
-  final TextEditingController _textFieldController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
 
-  void _addTodoItem(String name) {
+  void _addTodoItem(String name, String description) {
     setState(() {
-      _todos.add(Todo(name: name, completed: false));
+      _todos.add(Todo(name: name, description: description, completed: false));
     });
-    _textFieldController.clear();
+    nameController.clear();
+    descriptionController.clear();
   }
 
   void _handleTodoChange(Todo todo) {
@@ -81,11 +83,19 @@ class _TodoListState extends State<TodoList> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Ajouter une tâche à votre liste !'),
-          content: TextField(
-            controller: _textFieldController,
-            decoration: const InputDecoration(hintText: 'Titre de la tâche :'),
-            autofocus: true,
-          ),
+          content: Column(children: [
+            TextField(
+              controller: nameController,
+              decoration:
+                  const InputDecoration(hintText: 'Titre de la tâche :'),
+              autofocus: true,
+            ),
+            TextField(
+              controller: descriptionController,
+              decoration:
+                  const InputDecoration(hintText: 'Description de la tâche :'),
+            ),
+          ]),
           actions: <Widget>[
             OutlinedButton(
               style: OutlinedButton.styleFrom(
@@ -106,7 +116,7 @@ class _TodoListState extends State<TodoList> {
               ),
               onPressed: () {
                 Navigator.of(context).pop();
-                _addTodoItem(_textFieldController.text);
+                _addTodoItem(nameController.text, descriptionController.text);
               },
               child: const Text('Add'),
             ),
@@ -118,8 +128,10 @@ class _TodoListState extends State<TodoList> {
 }
 
 class Todo {
-  Todo({required this.name, required this.completed});
+  Todo(
+      {required this.name, required this.description, required this.completed});
   String name;
+  String description;
   bool completed;
 }
 
@@ -153,12 +165,15 @@ class TodoItem extends StatelessWidget {
         },
         background: Container(color: Colors.red),
         child: ListTile(
-          onTap: () {
-            onTodoChanged(todo);
+          onTap: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => TodoDetail(todo)),
+            );
           },
           leading: Checkbox(
-            checkColor: Colors.greenAccent,
-            activeColor: Colors.red,
+            checkColor: const Color.fromARGB(255, 184, 132, 226),
+            activeColor: const Color.fromARGB(255, 0, 0, 0),
             value: todo.completed,
             onChanged: (value) {
               onTodoChanged(todo);
@@ -170,5 +185,21 @@ class TodoItem extends StatelessWidget {
             ),
           ]),
         ));
+  }
+}
+
+class TodoDetail extends StatelessWidget {
+  // ignore: use_key_in_widget_constructors
+  const TodoDetail(this.todo);
+  final Todo todo;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(todo.name),
+      ),
+      body: Center(child: Text(todo.description)),
+    );
   }
 }
